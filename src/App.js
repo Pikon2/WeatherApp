@@ -56,6 +56,13 @@ function App() {
   };
 
   useEffect(() => {
+    return () => {
+      // clearing auto refresh on component unmount
+      clearInterval(polling);
+    };
+  }, []);
+
+  useEffect(() => {
     clearInterval(polling);
     if (key && refreshOn) {
       setPolling(setInterval(getWeatherDetails, AUTO_REFRESH_INTERVAL));
