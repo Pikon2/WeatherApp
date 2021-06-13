@@ -3,7 +3,7 @@ import { FaMoon, FaSun } from "react-icons/fa";
 
 import Autocomplete from "react-autocomplete";
 import "./App.css";
-import { API_KEY } from "./constants";
+import { API_KEY, AUTO_REFRESH_INTERVAL } from "./constants";
 import WeatherIcon from "./components/WeatherIcon";
 import { FormControlLabel, Switch } from "@material-ui/core";
 
@@ -13,6 +13,7 @@ function App() {
   const [key, setKey] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [refreshOn, setRefreshOn] = useState(false);
+  const [close, setClose] = useState(true);
   const [polling, setPolling] = useState("");
 
   const getWeatherDetails = () => {
@@ -45,6 +46,7 @@ function App() {
           (result) => {
             console.log(result);
             if (result) setSuggestions(result);
+            setClose(false);
           },
           (error) => {
             console.log(error);
@@ -54,12 +56,17 @@ function App() {
   };
 
   useEffect(() => {
-    if (key) {
-      refreshOn
-        ? setPolling(setInterval(getWeatherDetails, 5000))
-        : clearInterval(polling);
+    clearInterval(polling);
+    if (key && refreshOn) {
+      setPolling(setInterval(getWeatherDetails, AUTO_REFRESH_INTERVAL));
     }
-  }, [refreshOn]);
+  }, [refreshOn, key]);
+
+  const onItemSelect = (val) => {
+    setClose(true);
+    setKey(val);
+    getWeatherDetails();
+  };
 
   return (
     <div className="App">
@@ -79,12 +86,10 @@ function App() {
                 {item.country.englishName}
               </div>
             )}
+            open={!close}
             value={value}
             onChange={onChanges}
-            onSelect={(val) => {
-              setKey(val);
-              getWeatherDetails();
-            }}
+            onSelect={(val) => onItemSelect(val)}
           />
           <FormControlLabel
             value="bottom"
